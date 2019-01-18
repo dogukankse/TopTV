@@ -9,11 +9,13 @@ import android.widget.Toast
 import com.dogukankse.toptv.R
 import com.dogukankse.toptv.adapters.MyRecyclerAdapter
 import com.dogukankse.toptv.api.ApiClient
-import com.dogukankse.toptv.api.OnGetGenresCallback
-import com.dogukankse.toptv.api.OnGetShowsCallback
+import com.dogukankse.toptv.api.OnGetGenreListCallback
+import com.dogukankse.toptv.api.OnGetShowListCallback
 import com.dogukankse.toptv.pojo.Genre
-import com.dogukankse.toptv.pojo.Result
+import com.dogukankse.toptv.pojo.Show
 import kotlinx.android.synthetic.main.activity_main.*
+import android.content.Intent
+import com.dogukankse.toptv.ui.moviedetails.ShowDetailsActivity
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,11 +32,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setSupportActionBar(toolbar)
+
         client = ApiClient.instance
         show_list.layoutManager = LinearLayoutManager(this)
 
         setupOnScrollListener()
         getGenres()
+
 
 
     }
@@ -59,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getGenres() {
-        client.getGenres(object : OnGetGenresCallback {
+        client.getGenreList(object : OnGetGenreListCallback {
             override fun onSuccess(genres: List<Genre>) {
                 showGenres = genres
                 getShows(currentPage)
@@ -76,15 +81,21 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun myOnClick(show : Show) {
+        val showDetailActivityIntent = Intent(this, ShowDetailsActivity::class.java)
+        showDetailActivityIntent.putExtra(Intent.EXTRA_TEXT, show.id.toString())
+        startActivity(showDetailActivityIntent)
+    }
+
 
     private fun getShows(page: Int) {
         isFetchingShows = true
-        client.getShows(page, object : OnGetShowsCallback {
-            override fun onSuccess(page: Int, shows: MutableList<Result>) {
+        client.getShowList(page, object : OnGetShowListCallback {
+            override fun onSuccess(page: Int, shows: MutableList<Show>) {
                 Log.d("MoviesRepository", "Current Page = $page")
 
                 if (adapter == null) {
-                    adapter = MyRecyclerAdapter(shows, showGenres!!)
+                    adapter = MyRecyclerAdapter(shows, showGenres!!) { show : Show -> myOnClick(show) }
                     show_list.adapter = adapter
                 } else {
                     adapter!!.appendMovies(shows)

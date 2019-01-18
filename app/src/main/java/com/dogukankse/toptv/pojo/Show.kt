@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 
 
 
-class Result {
+class Show {
     @SerializedName("genre_ids")
     @Expose
     var genreIds: List<Int>? = null
@@ -25,10 +25,6 @@ class Result {
     @SerializedName("vote_average")
     @Expose
     var voteAverage: Float? = null
-
-    @SerializedName("overview")
-    @Expose
-    var overview: String? = null
 
     @SerializedName("poster_path")
     @Expose

@@ -1,8 +1,6 @@
 package com.dogukankse.toptv.api
 
-import android.util.Log
-import com.dogukankse.toptv.pojo.Genres
-import com.dogukankse.toptv.pojo.Repo
+import com.dogukankse.toptv.pojo.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -35,15 +33,52 @@ class ApiClient private constructor(private val api: IApi) {
             }
     }
 
-    fun getShows(page: Int, callback: OnGetShowsCallback) {
-        Log.d("MoviesRepository", "Next Page = $page")
-        api.getPopulerShows(apiKey, lang, page)
-            .enqueue(object : Callback<Repo> {
-                override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
+    fun getTrailerList(showId: Int, callback: OnGetTrailerListCallback) {
+        api.getTrailerList(showId, apiKey)
+            .enqueue(object : Callback<TrailerList> {
+                override fun onFailure(call: Call<TrailerList>, t: Throwable) {
+                    callback.onError()
+                }
+
+                override fun onResponse(call: Call<TrailerList>, response: Response<TrailerList>) {
+                    if (response.isSuccessful) {
+                        val trailerList = response.body()
+                        if (trailerList?.trailerList != null) {
+                            callback.onSuccess(trailerList.trailerList!!)
+                        } else callback.onError()
+                    } else callback.onError()
+                }
+
+            })
+    }
+
+    fun getRecommendationList(showId: Int, callback: OnGetRecommendationListCallback) {
+        api.getRecommendationList(showId, apiKey)
+            .enqueue(object : Callback<RecommendationList> {
+                override fun onFailure(call: Call<RecommendationList>, t: Throwable) {
+                    callback.onError()
+                }
+
+                override fun onResponse(call: Call<RecommendationList>, response: Response<RecommendationList>) {
+                    if (response.isSuccessful) {
+                        val recList = response.body()
+                        if (recList?.showList != null) {
+                            callback.onSuccess(recList.showList!!)
+                        } else callback.onError()
+                    } else callback.onError()
+                }
+
+            })
+    }
+
+    fun getShowList(page: Int, callback: OnGetShowListCallback) {
+        api.getShowList(apiKey, lang, page)
+            .enqueue(object : Callback<ShowList> {
+                override fun onResponse(call: Call<ShowList>, response: Response<ShowList>) {
                     if (response.isSuccessful) {
                         val res = response.body()
-                        if (res?.results != null) {
-                            callback.onSuccess(res.page!!,res.results!!)
+                        if (res?.showList != null) {
+                            callback.onSuccess(res.page!!, res.showList!!)
                         } else {
                             callback.onError()
                         }
@@ -52,23 +87,44 @@ class ApiClient private constructor(private val api: IApi) {
                     }
                 }
 
-                override fun onFailure(call: Call<Repo>, t: Throwable) {
+                override fun onFailure(call: Call<ShowList>, t: Throwable) {
                     callback.onError()
                 }
             })
     }
 
-    fun getGenres(callback: OnGetGenresCallback) {
-        api.getGenres(apiKey, lang).enqueue(object : Callback<Genres> {
-            override fun onFailure(call: Call<Genres>, t: Throwable) {
+    fun getCastList(showId: Int, callback: OnGetCastCallback) {
+        api.getCastList(showId, apiKey, lang).enqueue(object : Callback<CastList> {
+            override fun onFailure(call: Call<CastList>, t: Throwable) {
                 callback.onError()
             }
 
-            override fun onResponse(call: Call<Genres>, response: Response<Genres>) {
+            override fun onResponse(call: Call<CastList>, response: Response<CastList>) {
                 if (response.isSuccessful) {
-                    val genres = response.body()
-                    if (genres?.genres != null) {
-                        callback.onSuccess(genres.genres)
+                    val castList = response.body()
+                    if (castList!!.castList != null) {
+                        callback.onSuccess(castList.castList!!)
+                    } else {
+                        callback.onError()
+                    }
+                } else {
+                    callback.onError()
+                }
+            }
+        })
+    }
+
+    fun getGenreList(callback: OnGetGenreListCallback) {
+        api.getGenreList(apiKey, lang).enqueue(object : Callback<GenreList> {
+            override fun onFailure(call: Call<GenreList>, t: Throwable) {
+                callback.onError()
+            }
+
+            override fun onResponse(call: Call<GenreList>, response: Response<GenreList>) {
+                if (response.isSuccessful) {
+                    val genreList = response.body()
+                    if (genreList?.genreList != null) {
+                        callback.onSuccess(genreList.genreList)
                     } else {
                         callback.onError()
                     }
@@ -78,6 +134,28 @@ class ApiClient private constructor(private val api: IApi) {
             }
 
         })
+    }
+
+    fun getShow(showId: Int, callback: OnGetShowCallback) {
+        api.getShow(showId, apiKey, lang)
+            .enqueue(object : Callback<ShowDetail> {
+                override fun onResponse(call: Call<ShowDetail>, response: Response<ShowDetail>) {
+                    if (response.isSuccessful) {
+                        val show = response.body()
+                        if (show != null) {
+                            callback.onSuccess(show)
+                        } else {
+                            callback.onError()
+                        }
+                    } else {
+                        callback.onError()
+                    }
+                }
+
+                override fun onFailure(call: Call<ShowDetail>, t: Throwable) {
+                    callback.onError()
+                }
+            })
     }
 
 

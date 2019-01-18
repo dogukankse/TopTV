@@ -9,19 +9,21 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.dogukankse.toptv.R
 import com.dogukankse.toptv.pojo.Genre
-import com.dogukankse.toptv.pojo.Result
+import com.dogukankse.toptv.pojo.Show
 import com.squareup.picasso.Picasso
 
 
-
-
-class MyRecyclerAdapter constructor(private var results: MutableList<Result>, private var genreList: List<Genre>) :
+class MyRecyclerAdapter constructor(
+    private var showList: MutableList<Show>,
+    private var genreList: List<Genre>,
+    private val clickListener: (Show) -> Unit
+) :
     RecyclerView.Adapter<MyRecyclerAdapter.ViewHolder>() {
 
     private val imageBaseUrl = "http://image.tmdb.org/t/p/w500"
 
-    fun appendMovies(shows: List<Result>) {
-        results.addAll(shows)
+    fun appendMovies(shows: List<Show>) {
+        showList.addAll(shows)
         notifyDataSetChanged()
     }
 
@@ -31,44 +33,45 @@ class MyRecyclerAdapter constructor(private var results: MutableList<Result>, pr
     }
 
     override fun getItemCount(): Int {
-        return results.size
+        return showList.size
     }
 
     override fun onBindViewHolder(holder: MyRecyclerAdapter.ViewHolder, position: Int) {
-        holder.bind(results[position])
+        holder.bind(showList[position], clickListener)
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private var releaseDate: TextView = itemView.findViewById(R.id.show_card_release)
         private var title: TextView = itemView.findViewById(R.id.show_card_title)
-        private var rating: TextView = itemView.findViewById(R.id.show_card_vote)
+        private var vote: TextView = itemView.findViewById(R.id.show_card_vote)
         private var genres: TextView = itemView.findViewById(R.id.show_card_genre)
         private var showImage: ImageView = itemView.findViewById(R.id.show_card_image)
 
-        fun bind(results: Result) {
 
-            releaseDate.text = results.releaseDate!!.split("-")[0]
-            title.text = results.name
-            rating.text = results.voteAverage.toString()
-            genres.text = getGenres(results.genreIds!!)
-            Picasso.get().load(imageBaseUrl+results.imagePath)
+        fun bind(show: Show, clickListener: (Show) -> Unit) {
+
+            releaseDate.text = show.releaseDate!!.split("-")[0]
+            title.text = show.name
+            vote.text = show.voteAverage.toString()
+            genres.text = getGenreList(show.genreIds!!)
+            Picasso.get().load(imageBaseUrl + show.imagePath)
                 .placeholder(R.color.colorPrimary)
-                .error(R.color.colorAccent).into(showImage)
-
+                .error(R.mipmap.no_image).into(showImage)
+            itemView.setOnClickListener { clickListener(show) }
 
         }
 
-        private fun getGenres(genreIds: List<Int>): String {
-            val showGenres = ArrayList<String>()
+        private fun getGenreList(genreIds: List<Int>): String {
+            val showGenreList = ArrayList<String>()
             for (genreId in genreIds) {
                 for (genre in genreList) {
                     if (genre.id == genreId) {
-                        showGenres.add(genre.name!!)
+                        showGenreList.add(genre.name!!)
                         break
                     }
                 }
             }
-            return TextUtils.join(", ", showGenres)
+            return TextUtils.join(", ", showGenreList)
         }
     }
 

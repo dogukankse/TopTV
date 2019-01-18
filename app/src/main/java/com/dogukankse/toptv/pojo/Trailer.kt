@@ -3,9 +3,10 @@ package com.dogukankse.toptv.pojo
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class Genres {
 
-    @SerializedName("genres")
+
+class Trailer {
+    @SerializedName("key")
     @Expose
-    val genres:List<Genre>?=null
+    val key: String? = null
 }
